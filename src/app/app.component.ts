@@ -1,20 +1,30 @@
-import { Component, OnInit } from '@angular/core';
-import { AnalyticsService } from './@core/utils/analytics.service';
-import { SeoService } from './@core/utils/seo.service';
+import { Component, ElementRef, OnInit, Renderer2 } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
+import { TitleService, VERSION as VERSION_ALAIN } from '@delon/theme';
+import { NzModalService } from 'ng-zorro-antd/modal';
+import { VERSION as VERSION_ZORRO } from 'ng-zorro-antd/version';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
-  // templateUrl: './app.component.html',
-  template: '<router-outlet></router-outlet>',
-  styleUrls: ['./app.component.scss']
+  template: ` <router-outlet></router-outlet> `,
 })
-export class AppComponent implements OnInit{
-  title = 'DFGCharts';
-  constructor(private analytics: AnalyticsService, private seoService: SeoService) {
+export class AppComponent implements OnInit {
+  constructor(
+    el: ElementRef,
+    renderer: Renderer2,
+    private router: Router,
+    private titleSrv: TitleService,
+    private modalSrv: NzModalService,
+  ) {
+    renderer.setAttribute(el.nativeElement, 'ng-alain-version', VERSION_ALAIN.full);
+    renderer.setAttribute(el.nativeElement, 'ng-zorro-version', VERSION_ZORRO.full);
   }
 
   ngOnInit(): void {
-    this.analytics.trackPageViews();
-    this.seoService.trackCanonicalChanges();
+    this.router.events.pipe(filter((evt) => evt instanceof NavigationEnd)).subscribe(() => {
+      this.titleSrv.setTitle();
+      this.modalSrv.closeAll();
+    });
   }
 }
