@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { _HttpClient } from '@delon/theme';
+import { _HttpClient, SettingsService } from '@delon/theme';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { zip } from 'rxjs';
 
@@ -11,13 +11,12 @@ interface ProAccountSettingsUser {
   address: string;
   phone: string;
   avatar: string;
-  geographic: {
-    province: {
-      key: string;
-    };
-    city: {
-      key: string;
-    };
+
+  province: {
+    key: string;
+  };
+  city: {
+    key: string;
   };
 }
 
@@ -33,7 +32,12 @@ interface ProAccountSettingsCity {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProAccountSettingsBaseComponent implements OnInit {
-  constructor(private http: _HttpClient, private cdr: ChangeDetectorRef, private msg: NzMessageService) {}
+  constructor(
+    private http: _HttpClient,
+    private cdr: ChangeDetectorRef,
+    private msg: NzMessageService,
+    private settingsService: SettingsService,
+  ) {}
   avatar = '';
   userLoading = true;
   user: ProAccountSettingsUser;
@@ -44,12 +48,14 @@ export class ProAccountSettingsBaseComponent implements OnInit {
   cities: ProAccountSettingsCity[] = [];
 
   ngOnInit(): void {
-    zip(this.http.get('/user/current'), this.http.get('/geo/province')).subscribe(
+    const userId = this.settingsService.getData('user').id;
+    console.log('current user:' + userId);
+    zip(this.http.get('users/' + userId), this.http.get('/geo/province')).subscribe(
       ([user, province]: [ProAccountSettingsUser, ProAccountSettingsCity[]]) => {
         this.userLoading = false;
         this.user = user;
         this.provinces = province;
-        this.choProvince(user.geographic.province.key, false);
+        this.choProvince(user.province.key, false);
         this.cdr.detectChanges();
       },
     );
@@ -59,7 +65,7 @@ export class ProAccountSettingsBaseComponent implements OnInit {
     this.http.get(`/geo/${pid}`).subscribe((res) => {
       this.cities = res;
       if (cleanCity) {
-        this.user.geographic.city.key = '';
+        this.user.city.key = '';
       }
       this.cdr.detectChanges();
     });

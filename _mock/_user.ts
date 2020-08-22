@@ -85,7 +85,7 @@ export const USERS = {
         label: '海纳百川',
       },
     ],
-    notifyCount: 12,
+    notifications: 12,
     country: 'China',
     geographic: {
       province: {

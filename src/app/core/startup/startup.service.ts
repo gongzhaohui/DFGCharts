@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { ACLService } from '@delon/acl';
+import { DA_SERVICE_TOKEN, ITokenService } from '@delon/auth';
 import { ALAIN_I18N_TOKEN, MenuService, SettingsService, TitleService } from '@delon/theme';
 import { TranslateService } from '@ngx-translate/core';
 import { NzIconService } from 'ng-zorro-antd/icon';
@@ -23,6 +24,7 @@ export class StartupService {
     private translate: TranslateService,
     @Inject(ALAIN_I18N_TOKEN) private i18n: I18NService,
     private settingService: SettingsService,
+    @Inject(DA_SERVICE_TOKEN) private tokenService: ITokenService,
     private aclService: ACLService,
     private titleService: TitleService,
     private httpClient: HttpClient,
@@ -54,8 +56,10 @@ export class StartupService {
             const res = appData;
             // 应用信息：包括站点名、描述、年份
             this.settingService.setApp(res.app);
-            // 用户信息：包括姓名、头像、邮箱地址
-            this.settingService.setUser(res.user);
+            // // 用户信息：包括姓名、头像、邮箱地址
+            // this.settingService.setUser(res.user);
+            const user = this.settingService.getData('user');
+            console.log('startup user:' + JSON.stringify(user));
             // ACL：设置权限为全量
             this.aclService.setFull(true);
             // 初始化菜单

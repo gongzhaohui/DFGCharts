@@ -1,7 +1,10 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, Inject, OnDestroy, Optional } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { _HttpClient } from '@delon/theme';
+import { StartupService } from '@core';
+import { ReuseTabService } from '@delon/abc/reuse-tab';
+import { DA_SERVICE_TOKEN, ITokenService, JWTTokenModel } from '@delon/auth';
+import { SettingsService, _HttpClient } from '@delon/theme';
 import { NzMessageService } from 'ng-zorro-antd/message';
 
 @Component({
@@ -10,21 +13,37 @@ import { NzMessageService } from 'ng-zorro-antd/message';
   styleUrls: ['./register.component.less'],
 })
 export class UserRegisterComponent implements OnDestroy {
-  constructor(fb: FormBuilder, private router: Router, public http: _HttpClient, public msg: NzMessageService) {
+  constructor(
+    fb: FormBuilder,
+    private router: Router,
+    public http: _HttpClient,
+    public msg: NzMessageService,
+    private settingsService: SettingsService,
+    //  private socialService: SocialService,
+    // private authService:authservi
+    @Optional()
+    @Inject(ReuseTabService)
+    private reuseTabService: ReuseTabService,
+    @Inject(DA_SERVICE_TOKEN) private tokenService: ITokenService,
+    private startupSrv: StartupService,
+  ) {
     this.form = fb.group({
-      mail: [null, [Validators.required, Validators.email]],
+      userName: [null, [Validators.required, Validators.minLength(4)]],
+      // firstName:[null, [Validators.required, Validators.minLength(4)]],
+      // lastName:[null, [Validators.required, Validators.minLength(4)]],
+      email: [null, [Validators.required, Validators.email]],
       password: [null, [Validators.required, Validators.minLength(6), UserRegisterComponent.checkPassword.bind(this)]],
-      confirm: [null, [Validators.required, Validators.minLength(6), UserRegisterComponent.passwordEquar]],
-      mobilePrefix: ['+86'],
+      confirm: [null, [Validators.required, Validators.minLength(6), UserRegisterComponent.passwordEqual]],
       mobile: [null, [Validators.required, Validators.pattern(/^1\d{10}$/)]],
-      captcha: [null, [Validators.required]],
+      // gender: [null, [Validators.required]],
+      // birthed: [null, [Validators.nullValidator,Validators.pattern(/^(?:(?!0000)[0-9]{4}([-/.]?)(?:(?:0?[1-9]|1[0-2])\1(?:0?[1-9]|1[0-9]|2[0-8])|(?:0?[13-9]|1[0-2])\1(?:29|30)|(?:0?[13578]|1[02])\1(?:31))|(?:[0-9]{2}(?:0[48]|[2468][048]|[13579][26])|(?:0[48]|[2468][048]|[13579][26])00)([-/.]?)0?2\2(?:29))$/)]],
     });
   }
 
   // #region fields
 
-  get mail(): AbstractControl {
-    return this.form.controls.mail;
+  get email(): AbstractControl {
+    return this.form.controls.email;
   }
   get password(): AbstractControl {
     return this.form.controls.password;
@@ -35,19 +54,19 @@ export class UserRegisterComponent implements OnDestroy {
   get mobile(): AbstractControl {
     return this.form.controls.mobile;
   }
-  get captcha(): AbstractControl {
-    return this.form.controls.captcha;
-  }
+  // get captcha(): AbstractControl {
+  //   return this.form.controls.captcha;
+  // }
   form: FormGroup;
   error = '';
   type = 0;
   visible = false;
-  status = 'pool';
+  status = 'poor';
   progress = 0;
   passwordProgressMap = {
     ok: 'success',
     pass: 'normal',
-    pool: 'exception',
+    poor: 'exception',
   };
 
   // #endregion
@@ -68,7 +87,7 @@ export class UserRegisterComponent implements OnDestroy {
     } else if (control.value && control.value.length > 5) {
       self.status = 'pass';
     } else {
-      self.status = 'pool';
+      self.status = 'poor';
     }
 
     if (self.visible) {
@@ -76,30 +95,30 @@ export class UserRegisterComponent implements OnDestroy {
     }
   }
 
-  static passwordEquar(control: FormControl): { equar: boolean } | null {
+  static passwordEqual(control: FormControl): { equal: boolean } | null {
     if (!control || !control.parent) {
       return null;
     }
     if (control.value !== control.parent.get('password').value) {
-      return { equar: true };
+      return { equal: true };
     }
     return null;
   }
 
-  getCaptcha(): void {
-    if (this.mobile.invalid) {
-      this.mobile.markAsDirty({ onlySelf: true });
-      this.mobile.updateValueAndValidity({ onlySelf: true });
-      return;
-    }
-    this.count = 59;
-    this.interval$ = setInterval(() => {
-      this.count -= 1;
-      if (this.count <= 0) {
-        clearInterval(this.interval$);
-      }
-    }, 1000);
-  }
+  // getCaptcha(): void {
+  //   if (this.mobile.invalid) {
+  //     this.mobile.markAsDirty({ onlySelf: true });
+  //     this.mobile.updateValueAndValidity({ onlySelf: true });
+  //     return;
+  //   }
+  //   this.count = 59;
+  //   this.interval$ = setInterval(() => {
+  //     this.count -= 1;
+  //     if (this.count <= 0) {
+  //       clearInterval(this.interval$);
+  //     }
+  //   }, 1000);
+  // }
 
   // #endregion
 
@@ -114,9 +133,27 @@ export class UserRegisterComponent implements OnDestroy {
     }
 
     const data = this.form.value;
-    this.http.post('/register', data).subscribe(() => {
-      this.router.navigateByUrl('/passport/register-result', {
-        queryParams: { email: data.mail },
+    console.log('form data:' + JSON.stringify(data));
+    // ?_allow_anonymous=true
+    this.http.post('auth/register', data).subscribe((res) => {
+      console.log('register res:' + JSON.stringify(res));
+      if (res.msg && res.msg !== 'ok') {
+        this.error = res.msg;
+        return;
+      }
+      // 清空路由复用信息
+      this.reuseTabService.clear();
+      // 设置用户Token信息
+      this.tokenService.set(res);
+      const user = this.tokenService.get(JWTTokenModel).payload.user;
+      // console.log('payload:'+user);
+      this.settingsService.setUser(user);
+      // 重新获取 StartupService 内容，我们始终认为应用信息一般都会受当前用户授权范围而影响
+      this.startupSrv.load().then(() => {
+        // console.log('data.mail:'+data.email);
+        this.router.navigate(['/passport/register-result'], {
+          queryParams: { email: data.email },
+        });
       });
     });
   }

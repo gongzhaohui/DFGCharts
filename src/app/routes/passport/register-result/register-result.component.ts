@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
 
@@ -6,10 +6,20 @@ import { NzMessageService } from 'ng-zorro-antd/message';
   selector: 'passport-register-result',
   templateUrl: './register-result.component.html',
 })
-export class UserRegisterResultComponent {
+export class UserRegisterResultComponent implements OnInit {
   params = { email: '' };
   email = '';
-  constructor(route: ActivatedRoute, public msg: NzMessageService) {
-    this.params.email = this.email = route.snapshot.queryParams.email || 'ng-alain@example.com';
+  constructor(private route: ActivatedRoute, public msg: NzMessageService) {}
+  ngOnInit(): void {
+    // console.log('route snapshot param:' + JSON.stringify(this.route.snapshot.queryParams));
+    this.route.queryParams.subscribe((params) => {
+      this.params.email = this.email = params.email;
+      // console.log('route param:' + JSON.stringify(params));
+    });
+
+    // this.params.email = this.email = route.snapshot.queryParams.email || 'ng-alain@example.com';
+  }
+  openMailbox(): void {
+    this.msg.success(`email:${this.email}`);
   }
 }

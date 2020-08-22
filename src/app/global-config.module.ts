@@ -16,11 +16,14 @@ const alainConfig: AlainConfig = {
     license: `A59B099A586B3851E0F0D7FDBF37B603`,
     licenseA: `C94CEE276DB2187AE6B65D56B3FC2848`,
   },
-  auth: { login_url: '/passport/login' },
+  auth: { login_url: '/passport/login', ignores: [/\/login\//, /assets\//, /auth\//] },
 };
 
 const alainModules = [AlainThemeModule.forRoot(), DelonACLModule.forRoot(), DelonMockModule.forRoot()];
-const alainProvides = [{ provide: ALAIN_CONFIG, useValue: alainConfig }];
+const alainProvides = [
+  { provide: ALAIN_CONFIG, useValue: alainConfig },
+  { provide: DA_STORE_TOKEN, useClass: LocalStorageStore },
+];
 
 // mock
 import { environment } from '@env/environment';
@@ -56,7 +59,7 @@ if (!environment.production) {
 
 // Please refer to: https://ng.ant.design/docs/global-config/en#how-to-use
 // #region NG-ZORRO Config
-
+import { DA_STORE_TOKEN, LocalStorageStore } from '@delon/auth';
 import { NzConfig, NZ_CONFIG } from 'ng-zorro-antd/core/config';
 
 const ngZorroConfig: NzConfig = {};

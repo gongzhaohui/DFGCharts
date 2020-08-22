@@ -34,11 +34,11 @@ export class UserLockComponent {
       this.f.controls[i].updateValueAndValidity();
     }
     if (this.f.valid) {
-      console.log('Valid!');
-      console.log(this.f.value);
-      this.tokenService.set({
-        token: '123',
-      });
+      // console.log('Valid!');
+      // console.log(this.f.value);
+      // this.tokenService.set({
+      //   token: '123',
+      // });
       this.router.navigate(['dashboard']);
     }
   }
