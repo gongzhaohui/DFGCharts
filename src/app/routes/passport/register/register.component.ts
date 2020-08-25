@@ -133,10 +133,10 @@ export class UserRegisterComponent implements OnDestroy {
     }
 
     const data = this.form.value;
-    console.log('form data:' + JSON.stringify(data));
+    // console.log('form data:' + JSON.stringify(data));
     // ?_allow_anonymous=true
     this.http.post('auth/register', data).subscribe((res) => {
-      console.log('register res:' + JSON.stringify(res));
+      // console.log('register res:' + JSON.stringify(res));
       if (res.msg && res.msg !== 'ok') {
         this.error = res.msg;
         return;

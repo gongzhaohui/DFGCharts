@@ -1,12 +1,26 @@
 <nz-spin [nzSpinning]="userLoading">
   <div class="main" *ngIf="user">
     <div class="left">
-      <form nz-form nzLayout="vertical" #f="ngForm" (submit)="save()" se-container="1">
+      <form nz-form nzLayout="vertical" #f="ngForm" (submit)="save(f.value)" se-container="1">
+        <se label="用户名" error="请输入您的昵称!">
+          <input nz-input [(ngModel)]="user.userName" name="userName" disabled="true" />
+        </se>
         <se label="邮箱" error="请输入您的邮箱!">
           <input nz-input type="email" [(ngModel)]="user.email" name="email" required />
         </se>
-        <se label="昵称" error="请输入您的昵称!">
+        <div class="d-flex justify-content-between">
+          <se label="姓" error="请输入您的姓!">
+            <input nz-input [(ngModel)]="user.lastName" name="lastName" required />
+          </se>
+          <se label="名字" error="请输入您的名字!">
+            <input nz-input [(ngModel)]="user.firstName" name="firstName" class="width-50" required />
+          </se>
+        </div>
+        <!-- <se label="昵称" error="请输入您的昵称!">
           <input nz-input [(ngModel)]="user.name" name="name" required />
+        </se> -->
+        <se label="出生日期" error="请输入您的出生日期!">
+          <nz-date-picker [(ngModel)]="user.birthed" name="birthed" nzPlaceHolder="Please select data" nzShowTime="false"></nz-date-picker>
         </se>
         <se label="个人简介">
           <textarea
@@ -24,25 +38,33 @@
         </se>
         <se label="所在省市">
           <div class="d-flex justify-content-between">
+            <!-- <div ngModelGroup="province" #province="ngModelGroup" class="left"> -->
             <nz-select
-              [(ngModel)]="user.geographic.province.key"
+              [(ngModel)]="user.province"
               (ngModelChange)="choProvince($event)"
-              name="geographic.province.key"
+              name="province"
               required
               class="width-50 mr-sm"
+              lab
+              #province
             >
-              <nz-option *ngFor="let p of provinces" [nzLabel]="p.name" [nzValue]="p.id"></nz-option>
+              <nz-option *ngFor="let p of provinces" [nzLabel]="p.name" [nzValue]="p"></nz-option>
             </nz-select>
-            <nz-select [(ngModel)]="user.geographic.city.key" name="geographic.city.key" required class="width-50">
-              <nz-option *ngFor="let p of cities" [nzLabel]="p.name" [nzValue]="p.id"></nz-option>
+            <!-- <input nz-input [(ngModel)]="user.province.label" name="label" value="#province.label"> -->
+            <!-- </div>
+          <div ngModelGroup="city" #city="ngModelGroup" class="left"> -->
+            <nz-select [(ngModel)]="user.city" name="city" required class="width-50" #city>
+              <nz-option *ngFor="let c of cities" [nzLabel]="c.name" [nzValue]="c"></nz-option>
             </nz-select>
+            <!-- <input nz-input [(ngModel)]="user.city.label" name="label" value=#city.label> -->
+            <!-- </div> -->
           </div>
         </se>
         <se label="街道地址" error="请输入您的街道地址!">
           <input nz-input [(ngModel)]="user.address" name="address" required />
         </se>
         <se label="联系电话" error="请输入您的联系电话!">
-          <input nz-input [(ngModel)]="user.phone" name="phone" required />
+          <input nz-input [(ngModel)]="user.mobile" name="phone" required />
         </se>
         <se>
           <button nz-button nzType="primary" [disabled]="f.invalid">更新基本信息</button>
