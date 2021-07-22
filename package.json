@@ -107,7 +107,7 @@
     "stylelint-declaration-block-no-ignored-properties": "^2.3.0",
     "stylelint-order": "^4.0.0",
     "webpack-bundle-analyzer": "^3.6.1",
-    "xlsx": "^0.16.4",
+    "xlsx": "^0.17.0",
     "pretty-quick": "^2.0.1",
     "@delon/testing": "^10.0.0-beta.3",
     "ng-alain": "^10.0.0-beta.3",
